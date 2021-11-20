@@ -29,8 +29,18 @@ function submitWithConfiguration(conf)
     return
   end
 
-  if isfield(response, 'errorMessage')
-    fprintf('!! Submission failed: %s\n', response.errorMessage);
+  % Construct error message
+  if isfield(response, 'errorCode')
+      msg = sprintf('!! Submission failed: %s\n', response.errorCode);
+      if isfield(response,"message")
+          msg = [msg sprintf('!! %s\n',response.message)];
+      end
+      if isfield(response,'details')
+          if isfield(response.details,'learnerMessage')
+          msg = [msg sprintf('!! %s\n',response.details.learnerMessage)];
+          end
+      end
+      fprintf(msg);
   else
     showFeedback(parts, response);
     save(tokenFile, 'email', 'token');

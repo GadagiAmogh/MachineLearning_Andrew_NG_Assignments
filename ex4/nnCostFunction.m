@@ -62,23 +62,46 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
+% Feed Forward Propogation===================
+y_out = zeros(num_labels, m); % y_out has the dimensions K(no of units in output layer) X M (no of examples). In our case it is 10 X 5000
+for i =1:m;
+    y_out(y(i), i)=1;
+end
+a1 = X; % a1 is the value of the input to the hidden layer to calculate a2
+a1 = [ones(size(X, 1), 1) X]; %adding bias term and setting it to a0(lst yer = 1) = 1
+a2 = sigmoid(Theta1 * a1'); %calculating the output of 2nd layer which will be the input to the 3rd layer
+a2 = [ones(1, size(a2,2)); a2]; % adding bias term and setting it to a0(2nd layer = 1) = 1
+a3 = sigmoid(Theta2 * a2); %calucalting the output of the whole neural network.
 
+J = (-1/m) * (sum(sum(y_out .* log(a3) + (1-y_out) .* log(1-a3)))); % cost function is the the sqrd error of the output and input, hence a3 is is to be calculated from feed froward propogation.
 
+Regularization = lambda/(2*m) * ((sum(sum(Theta1(:, 2:end).^2)) + sum(sum(Theta2(:, 2:end).^2)))); % regularizing to make sure every pixel (attribute) adds a bit to the output of the model
 
+J = J + Regularization; 
 
+for i = 1:m;
+    a_1 = X(i,:); % Here we take the i th example for training.
+    a_1 = [1 a_1]; %adding bias term and setting it to a0(lst yer = 1) = 1
+    z_2 = Theta1 * a_1'; %defining z_2
+    a_2 = sigmoid(z_2); %calculating the output of 2nd layer which will be the input to the 3rd layer
+    a_2 = [1; a_2]; % adding bias term and setting it to a0(2nd layer = 1) = 1
+    z_3 = Theta2 * a_2; %defining z_3
+    a_3 = sigmoid(z_3); %calucalting the output of the whole neural network.
+    
+    delta_3 = a_3 - y_out(:,i); % Output Layer Error Term
+    delta_2 = Theta2' * delta_3 .* sigmoidGradient([1; z_2]);
+    delta_2 = delta_2(2:end); %Note that you should skip or remove  delta2(0) (bias term error)
+    DELTA_2 = delta_3 * a_2'; % Back Propogating the Error term
+    DELTA_1 = delta_2 * a_1; % Back Propogating the Error term
+    Theta2_grad = Theta2_grad + DELTA_2; % Accumulating the gradient for all the examples for delta2
+    Theta1_grad = Theta1_grad + DELTA_1; % Accumulating the gradient for all the examples for delta1
+end
 
+Theta2_grad = (1/m) * Theta2_grad; %Obtain the (unregularized) gradient for the neural network 
+Theta1_grad = (1/m) * Theta1_grad; %cost function by dividing the accumulated gradients by m.
 
-
-
-
-
-
-
-
-
-
-
-
+Theta1_grad(:,2:end) = Theta1_grad(:,2:end) + (lambda/m) * Theta1(:,2:end); % Removing the bias term i.e. first column from Theta1_grad and Theta2_grad which defined in this function earlier.
+Theta2_grad(:,2:end) = Theta2_grad(:,2:end) + (lambda/m) * Theta2(:,2:end); % Regularizing the gradient.
 
 % -------------------------------------------------------------
 
