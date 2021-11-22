@@ -15,7 +15,9 @@ sim = 0;
 %               sigma
 %
 %
-
+sigma_2 = 2 * (sigma^2);
+first_term = sum((x1 - x2)' * (x1-x2));
+sim = exp(-first_term / sigma_2);
 
 
 
